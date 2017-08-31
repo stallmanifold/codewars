@@ -31,24 +31,6 @@ class Maze():
         Mark.UNTRAVERSABLE: '-',
     }
 
-    def __init__(self, maze):
-        if maze == [] or maze[0] == []:
-            self.__cols = 0
-            self.__rows = 0
-            self.markers = []
-        else:
-            self.__cols = len(maze[0])
-            self.__rows = len(maze)
-            self.markers = init_array(Mark.UNMARKED, self.__cols + 2, self.__rows + 2)
-            border_array(self.markers, Mark.UNTRAVERSABLE, self.__cols + 2, self.__rows + 2)
-
-        for col in range(self.__cols): 
-            for row in range(self.__rows):
-                if maze[col][row] is True:
-                    self.markers[col + 1][row + 1] = Mark.UNMARKED
-                else:
-                    self.markers[col + 1][row + 1] = Mark.UNTRAVERSABLE
-
     @staticmethod
     def init_array(initial_value, cols, rows):
         """
@@ -74,6 +56,24 @@ class Maze():
         for row in range(rows):
             array[0][row] = array[cols - 1][row] = sentinel
 
+    def __init__(self, maze):
+        if maze == [] or maze[0] == []:
+            self.__cols = 0
+            self.__rows = 0
+            self.markers = []
+        else:
+            self.__cols = len(maze[0])
+            self.__rows = len(maze)
+            self.markers = init_array(Mark.UNMARKED, self.__cols + 2, self.__rows + 2)
+            border_array(self.markers, Mark.UNTRAVERSABLE, self.__cols + 2, self.__rows + 2)
+
+        for col in range(self.__cols): 
+            for row in range(self.__rows):
+                if maze[col][row] is True:
+                    self.markers[col + 1][row + 1] = Mark.UNMARKED
+                else:
+                    self.markers[col + 1][row + 1] = Mark.UNTRAVERSABLE
+
     def __contains__(self, key):
         col, row = key
         return (col >= 0) and (col < self.__cols) \
@@ -83,16 +83,6 @@ class Maze():
         if key in self:
             col, row = key
             return self.markers[col + 1][row + 1]
-        else:
-            raise IndexError(
-                'Index out of range. Got: {}; ' \
-                'The range of valid keys is: ({} <= column < {}, {} <= row < {}).'\
-                .format(key, 0, self.__cols, 0, self.__rows))
-
-    def __setitem__(self, key, item):
-        if key in self:
-            col, row = key
-            self.markers[col + 1][row + 1] = item
         else:
             raise IndexError(
                 'Index out of range. Got: {}; ' \
@@ -109,6 +99,10 @@ class Maze():
             self[key] = self.__NEXT_MARKER[self[key]]
 
     def peek(self, key, direction):
+        """
+        Peek in a direction and see what we find. Return None if it is not
+        traversable.
+        """
         new_key = key + direction.value
         if (new_key in self) and (self.is_traversable(new_key)):    
             return self[new_key]
@@ -133,7 +127,7 @@ class Maze():
             # Can we move left or right?
             if (self.markers[(col + 1) -1][row + 1] != Mark.UNTRAVERSABLE)\
                 or (self.markers[(col + 1) + 1][row + 1] != Mark.UNTRAVERSABLE):
-                
+
                 # We can move left or right.
                 # If we cannot move up or down, we are in a passage tile.
                 return (self.markers[col + 1][(row + 1) - 1] == Mark.UNTRAVERSABLE)\
@@ -179,14 +173,39 @@ class Maze():
         return string
 
 
-class MoveIter():
+class MazeIter():
+    """
+    The ``MazeIter`` class is an iterator that calculates the next step 
+    to take given the rules for solving a maze. Each call to ``next()`` 
+    performs one step of maze traversal. 
+    """
     def __init__(self, maze, start):
-        self.visited = []
         self.maze = maze
-        self.start = start
+        self.visited = []
+        self.sweep_step = { 
+            Direction.UP: None, 
+            Direction.DOWN: None,
+            Direction.RIGHT: None,
+            Direction.LEFT: None
+        }
+        self.current_pos = start
+        self.__sweep()
 
     def __iter__(self):
         return self
+
+    def __sweep(self):
+        # Sweep through all the possible directions,
+        # and determine which directions are possible to go.
+        for direction in self.sweep_step.keys():
+            tile = self.maze.peek[direction]
+            if tile:
+                self.sweep_step[direction] = tile
+            else:
+                self.sweep_step[direction] = None        
+
+    def __backtrack(self):
+        pass
 
     def __next__(self):
         pass
