@@ -74,44 +74,62 @@ class Maze():
         for row in range(rows):
             array[0][row] = array[cols - 1][row] = sentinel
 
-    def __contains__(self, index):
-        col, row = index[0], index[1]
+    def __contains__(self, key):
+        col, row = key
         return (col >= 0) and (col < self.__cols) \
            and (row >= 0) and (row < self.__rows)
 
-    def mark(self, col, row):
+    def __getitem__(self, key):
+        if key in self:
+            col, row = key
+            return self.markers[col + 1][row + 1]
+        else:
+            raise IndexError(
+                'Index out of range. Got: {}; ' \
+                'The range of valid keys is: ({} <= column < {}, {} <= row < {}).'\
+                .format(key, 0, self.__cols, 0, self.__rows))
+
+    def __setitem__(self, key, item):
+        if key in self:
+            col, row = key
+            self.markers[col + 1][row + 1] = item
+        else:
+            raise IndexError(
+                'Index out of range. Got: {}; ' \
+                'The range of valid keys is: ({} <= column < {}, {} <= row < {}).'\
+                .format(key, 0, self.__cols, 0, self.__rows))
+
+    def mark(self, key):
         """
         We traverse the marker map in column-major order; the ``col``
         represents the x-coordinate, whereas the ``row`` represents 
         the y-coordinate.
         """
-        if (col, row) in self:
-            self.markers[col + 1][row + 1] = \
-                self.__NEXT_MARKER[self.markers[col + 1][row + 1]]
+        if key in self:
+            self[key] = self.__NEXT_MARKER[self[key]]
 
-    def peek(self, col, row, direction):
-        d_col, d_row = direction.value
-        new_col = col + d_col
-        new_row = row + d_row
-        if ((new_col, new_row) in self) and (self.is_traversable(new_col, new_row)):    
-            return self.markers[new_col + 1][new_row + 1]
+    def peek(self, key, direction):
+        new_key = key + direction.value
+        if (new_key in self) and (self.is_traversable(new_key)):    
+            return self[new_key]
         else: 
             return None
 
-    def is_traversable(self, col, row):
+    def is_traversable_at(self, key):
         """
         Determine whether a tile in the maze is traversable.
         """
-        if (col, row) in self:
-            return self.markers[col + 1][row + 1] != Mark.UNTRAVERSABLE
+        if key in self:
+            return self[key] != Mark.UNTRAVERSABLE
         else:
             return False
 
-    def is_passage(self, col, row):
+    def is_passage_at(self, key):
         """
         Determine whether a tile in the maze is in a passage tile.
         """
-        if (col, row) in self:
+        if key in self:
+            col, row = key
             # Can we move left or right?
             if (self.markers[(col + 1) -1][row + 1] != Mark.UNTRAVERSABLE)\
                 or (self.markers[(col + 1) + 1][row + 1] != Mark.UNTRAVERSABLE):
@@ -128,11 +146,12 @@ class Maze():
         else:
             return False
 
-    def is_junction(self, col, row):
+    def is_junction_at(self, key):
         """
         Determine whether a tile in the maze is at a junction.
         """
-        if (col, row) in self:
+        if key in self:
+            col, row = key
             # Can we move left or right?
             if (self.markers[(col + 1) - 1][row + 1] != Mark.UNTRAVERSABLE)\
                 or (self.markers[(col + 1) + 1][row + 1] != Mark.UNTRAVERSABLE):
@@ -151,9 +170,9 @@ class Maze():
 
     def __str__(self):
         string = ''
-        for row in range(self.__rows + 2):
-            for col in range(self.__cols + 2):
-                string += self.__MARKER_CHARS[self.markers[col][row]]
+        for row in range(self.__rows):
+            for col in range(self.__cols):
+                string += self.__MARKER_CHARS[self[(col, row)]]
 
             string += '\n'
 
