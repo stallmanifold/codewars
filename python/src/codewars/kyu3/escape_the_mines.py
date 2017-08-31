@@ -2,31 +2,6 @@ import itertools as it
 import enum
 
 
-def init_array(initial_value, cols, rows):
-    """
-    Initialize a new array with an initial value.
-    """
-    if cols == 0 or rows == 0:
-        return []
-
-    array = [[initial_value for i in range(rows)]]
-    for _ in range(cols-1):
-        array.append(array[0][:])
-
-    return array
-
-
-def border_array(array, sentinel, cols, rows):
-    """
-    Place a sentinel-valued border around the maze.
-    """
-    for col in range(cols):
-        array[col][0] = array[col][rows - 1] = sentinel
-        
-    for row in range(rows):
-        array[0][row] = array[cols - 1][row] = sentinel
-
-
 class Direction(enum.Enum):
     UP    = (0, -1)
     DOWN  = (0,  1)
@@ -74,6 +49,31 @@ class Maze():
                 else:
                     self.markers[col + 1][row + 1] = Mark.UNTRAVERSABLE
 
+    @staticmethod
+    def init_array(initial_value, cols, rows):
+        """
+        Initialize a new array with an initial value.
+        """
+        if cols == 0 or rows == 0:
+            return []
+
+        array = [[initial_value for i in range(rows)]]
+        for _ in range(cols-1):
+            array.append(array[0][:])
+
+        return array
+
+    @staticmethod
+    def border_array(array, sentinel, cols, rows):
+        """
+        Place a sentinel-valued border around the maze.
+        """
+        for col in range(cols):
+            array[col][0] = array[col][rows - 1] = sentinel
+        
+        for row in range(rows):
+            array[0][row] = array[cols - 1][row] = sentinel
+
     def __contains__(self, index):
         col, row = index[0], index[1]
         return (col >= 0) and (col < self.__cols) \
@@ -89,12 +89,12 @@ class Maze():
             self.markers[col + 1][row + 1] = \
                 self.__NEXT_MARKER[self.markers[col + 1][row + 1]]
 
-    def peek(self, row, col, direction):
+    def peek(self, col, row, direction):
         d_col, d_row = direction.value
-        new_col = col + 1 + d_col
-        new_row = row + 1 + d_row
-        if (new_col, new_row) in self:    
-            return self.markers[new_col][new_row]
+        new_col = col + d_col
+        new_row = row + d_row
+        if ((new_col, new_row) in self) and (self.is_traversable(new_col, new_row)):    
+            return self.markers[new_col + 1][new_row + 1]
         else: 
             return None
 
@@ -119,7 +119,7 @@ class Maze():
                 # We can move left or right.
                 # If we cannot move up or down, we are in a passage tile.
                 return (self.markers[col + 1][(row + 1) - 1] == Mark.UNTRAVERSABLE)\
-                    or (self.markers[col + 1][(row + 1) + 1] == Mark.UNTRAVERSABLE)
+                    and (self.markers[col + 1][(row + 1) + 1] == Mark.UNTRAVERSABLE)
             else:
                 # We cannot move left or right.
                 # This leaves only the possibility of moving up or down.
@@ -170,7 +170,7 @@ class MoveIter():
         return self
 
     def __next__(self):
-        pass 
+        pass
 
 
 """
