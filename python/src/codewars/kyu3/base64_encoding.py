@@ -120,39 +120,6 @@ def from_base64_iter(buf):
         bits_in_rem = 0
 
         yield octet
-    """
-    shift_upper = 2
-    shift_lower = 4
-    mask_upper  = 0x3F
-    mask_lower  = 0x30
-    i = 0
-    while True:
-        if (i < buf_size-1) and (shift_lower >= 0):
-            upper = (buf[i] & mask_upper) << shift_upper
-            lower = (buf[i+1] & mask_lower) >> shift_lower
-            octet = upper | lower
-            mask_upper >>= 2
-            mask_lower = mask_lower | (mask_lower >> 2)
-            shift_upper += 2
-            shift_lower -= 2
-            i += 1
-
-            yield octet
-        elif (i < buf_size-1) and (shift_lower < 0):
-            # We have consumed 3 bytes, or 4 sextets.
-            # So we reset the masks.
-            shift_upper = 2
-            shift_lower = 4
-            mask_upper = 0x3F
-            mask_lower = 0x30
-            i += 1
-        elif (shift_lower > 0):
-            octet = buf[i-1] & mask_lower
-            shift_lower = 0
-            yield octet
-        else:
-            break
-    """
 
 
 def from_base64(byte_string):
