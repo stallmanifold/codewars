@@ -1,0 +1,50 @@
+a step is a pair (coordinates, Direction).
+
+if passage:
+    if (next_step is a junction) and (step is UNMARKED):
+        mark.
+        push step coordinates on stack.
+        enter junction.
+        yield step.
+    else if (next_step is a junction) and (step is MARKED ONCE):
+        # We have been here before.
+        mark.
+        backtrack.
+        yield step.
+    else if (step is MARKED TWICE):
+        # We should not have traversed here again.
+        raise StopIteration.
+    else if (we can only move in one direction):
+        # A dead end passage. Mark twice since we're not coming back.
+        mark.
+        mark.
+        backtrack.
+        yield step.
+    else:
+        take one step in passage direction.
+        yield step.
+else if junction:
+    sweep.
+    if junction has at most one marked path:
+        choose an unmarked direction. 
+        take one step in that direction.     
+        mark.
+        yield step.
+    else if junction has traversable paths:
+        choose a direction with the fewest marks that is not the entrance.
+        take step.
+        mark.
+        yield step.
+    else if junction has no more once marked paths:
+        # This junction is a dead end.
+        step back into entry passage.
+        # We only mark once since we made a mark on entry.
+        mark.
+        backtrack.
+        yield step.
+    else:
+        # Failure.
+        raise StopIteration.
+else:
+    # Failure
+    raise StopIteration.
