@@ -56,8 +56,71 @@ def to_base_64(string):
     return to_base64(string.encode('utf-8')).decode('utf-8')
 
 def from_base64_iter(buf):
+    mask_upper  = {}
+    mask_lower  = {}
+    shift_upper = {}
+    shift_lower = {}
+
     buf_size = len(buf)
-    
+    octet = 0
+    rem   = 0
+    bits_in_rem = 0
+    i = 0
+    while i < buf_size:
+        if bits_in_rem == 6:
+            # We have not reached not processed a 
+            # batch of 4 setets yet.
+            upper = rem << 2
+            lower = (buf[i] & 0x30) >> 4
+            octet = upper | lower
+            rem = buf[i] & 0x0F
+            bits_in_rem -= 2
+            i += 1
+
+            yield octet
+        elif bits_in_rem == 4:
+            # We have not reached not processed a 
+            # batch of 4 setets yet.
+            upper = rem << 4
+            lower = (buf[i] & 0x3C) >> 2
+            octet = upper | lower
+            rem = buf[i] & 0x03
+            bits_in_rem -= 2
+            i += 1
+
+            yield octet
+        elif bits_in_rem == 2:
+            # We have not reached not processed a 
+            # batch of 4 setets yet.
+            upper = rem << 6
+            lower = (buf[i] & 0x3F) >> 0
+            octet = upper | lower
+            rem = buf[i] & 0x00
+            bits_in_rem -= 2
+            i += 1
+
+            yield octet
+        else:
+            assert bits_in_rem == 0, 'bits_in_rem != 0.'
+            # We have processed a batch of 4 sextets. Now we
+            # set up for the next batch of 4 sextets.
+            upper = 0
+            lower = 0
+            octet = upper | lower
+            rem = buf[i] & 0x3F
+            bits_in_rem = 6
+            i += 1
+
+
+    if bits_in_rem > 0:
+        # we have consumed every byte but there are
+        # still unprocessed bits remaining.
+        octet = rem
+        rem = 0
+        bits_in_rem = 0
+
+        yield octet
+    """
     shift_upper = 2
     shift_lower = 4
     mask_upper  = 0x3F
@@ -89,14 +152,18 @@ def from_base64_iter(buf):
             yield octet
         else:
             break
+    """
 
-# TODO: Verify string is base64.
+
 def from_base64(byte_string):
-    sextets = []
-    for char in byte_string:
-        sextets.append(FROM_BASE64[char])
+    try:
+        sextets = []
+        for char in byte_string:
+            sextets.append(FROM_BASE64[char])
     
-    return bytes(from_base64_iter(sextets))
+        return bytes(from_base64_iter(sextets))
+    except:
+        raise Exception("Invalid Base64 string.")
 
 def from_base_64(base64_string):
     return from_base64(base64_string.encode('utf-8')).decode('utf-8')
