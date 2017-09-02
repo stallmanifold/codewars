@@ -46,7 +46,7 @@ def to_base64_iter(buf):
             # remaining.
             break
 
-        assert (sextet & 0xC0) == 0
+        assert sextet & 0xC0 == 0
         yield sextet
 
 def to_base64(byte_string):
@@ -56,10 +56,10 @@ def to_base_64(string):
     return to_base64(string.encode('utf-8')).decode('utf-8')
 
 def from_base64_iter(buf):
-    mask_upper  = {}
-    mask_lower  = {}
-    shift_upper = {}
-    shift_lower = {}
+    mask_rem    = { 6: 0x0F, 4: 0x03, 2: 0x00 }
+    mask_lower  = { 6: 0x30, 4: 0x3C, 2: 0x3F }
+    shift_upper = { 6: 2, 4: 4, 2: 6 }
+    shift_lower = { 6: 4, 4: 2, 2: 0 }
 
     buf_size = len(buf)
     octet = 0
@@ -67,35 +67,13 @@ def from_base64_iter(buf):
     bits_in_rem = 0
     i = 0
     while i < buf_size:
-        if bits_in_rem == 6:
+        if bits_in_rem > 0:
             # We have not reached not processed a 
             # batch of 4 setets yet.
-            upper = rem << 2
-            lower = (buf[i] & 0x30) >> 4
+            upper = rem << shift_upper[bits_in_rem]
+            lower = (buf[i] & mask_lower[bits_in_rem]) >> shift_lower[bits_in_rem]
             octet = upper | lower
-            rem = buf[i] & 0x0F
-            bits_in_rem -= 2
-            i += 1
-
-            yield octet
-        elif bits_in_rem == 4:
-            # We have not reached not processed a 
-            # batch of 4 setets yet.
-            upper = rem << 4
-            lower = (buf[i] & 0x3C) >> 2
-            octet = upper | lower
-            rem = buf[i] & 0x03
-            bits_in_rem -= 2
-            i += 1
-
-            yield octet
-        elif bits_in_rem == 2:
-            # We have not reached not processed a 
-            # batch of 4 setets yet.
-            upper = rem << 6
-            lower = (buf[i] & 0x3F) >> 0
-            octet = upper | lower
-            rem = buf[i] & 0x00
+            rem = buf[i] & mask_rem[bits_in_rem]
             bits_in_rem -= 2
             i += 1
 
@@ -111,8 +89,9 @@ def from_base64_iter(buf):
             bits_in_rem = 6
             i += 1
 
-
+    assert i == buf_size
     if bits_in_rem > 0:
+
         # we have consumed every byte but there are
         # still unprocessed bits remaining.
         octet = rem
