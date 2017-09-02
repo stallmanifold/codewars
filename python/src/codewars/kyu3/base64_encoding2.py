@@ -19,8 +19,8 @@ def to_base64_iter(buf):
     rem_shift   = { 0: 4, 2: 2, 4: 0 }
     rem_mask    = { 0: 0x03, 2: 0x0F, 4: 0x3F }
     sextet_mask = { 0: 0xFC, 2: 0xF0, 4: 0xC0 }
-    buf_size = len(buf)
     
+    buf_size = len(buf)
     bits_in_rem = 0
     rem = 0
     sextet = 0
@@ -50,11 +50,12 @@ def to_base64_iter(buf):
         assert sextet & 0xC0 == 0
         yield sextet
 
-def to_base64(byte_string):
-    return bytes(map(lambda sextet: TO_BASE64[sextet], to_base64_iter(byte_string)))
+def to_base64(string):
+    byte_string = list(map(ord, string))
+    return ''.join(map(chr, map(lambda sextet: TO_BASE64[sextet], to_base64_iter(byte_string))))
 
 def to_base_64(string):
-    return to_base64(string.encode('utf-8')).decode('utf-8')
+    return to_base64(string)
 
 def from_base64_iter(buf):
     mask_rem    = { 6: 0x0F, 4: 0x03, 2: 0x00 }
@@ -70,7 +71,8 @@ def from_base64_iter(buf):
     while i < buf_size:
         if bits_in_rem > 0:
             # We have not reached not processed a 
-            # batch of 4 setets yet.
+            # batch of 4 setets yet. 
+            # Note: 4 sextets makes 3 bytes.
             upper = rem << shift_upper[bits_in_rem]
             lower = (buf[i] & mask_lower[bits_in_rem]) >> shift_lower[bits_in_rem]
             octet = upper | lower
@@ -83,6 +85,7 @@ def from_base64_iter(buf):
             assert bits_in_rem == 0, 'bits_in_rem != 0'
             # We have processed a batch of 4 sextets. Now we
             # set up for the next batch of 4 sextets.
+            # Note: 4 sextets makes 3 bytes.
             rem = buf[i] & 0x3F
             bits_in_rem = 6
             i += 1
@@ -90,22 +93,19 @@ def from_base64_iter(buf):
     if (bits_in_rem > 0) and (rem != 0):
         # we have consumed every byte but there are
         # still unprocessed bits remaining.
-        octet = rem
+        octet = rem 
         rem = 0
         bits_in_rem = 0
 
         yield octet
 
 
-def from_base64(byte_string):
+def from_base64(base64_string):
     try:
-        sextets = []
-        for char in byte_string:
-            sextets.append(FROM_BASE64[char])
-    
-        return bytes(from_base64_iter(sextets))
+        sextets = list(map(lambda ch: FROM_BASE64[ord(ch)], base64_string))
+        return ''.join(map(chr, from_base64_iter(sextets)))
     except:
         raise ValueError("Invalid Base64 string.")
 
 def from_base_64(base64_string):
-    return from_base64(base64_string.encode('utf-8')).decode('utf-8')
+    return from_base64(base64_string)
