@@ -22,7 +22,8 @@ class BalanceMapper(Callable):
                 except:
                     return False
             else:
-                return False
+                # Ignore it.
+                continue
 
         # If the stack is empty when we've parsed the string,
         # the string is a valid string of balanced characters.
@@ -32,4 +33,4 @@ class BalanceMapper(Callable):
             return False
 
 
-validBraces = BalanceMapper({ '(': ')', '[': ']', '{': '}'})
+valid_parentheses = BalanceMapper({ '(': ')' })
