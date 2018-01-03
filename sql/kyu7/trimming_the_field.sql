@@ -1,5 +1,5 @@
-SELECT id, 
+select id, 
        name, 
-       trim(split_part(characteristics, ',', 1)) AS characteristic
-FROM monsters
-ORDER BY id
+       trim(split_part(characteristics, ',', 1)) as characteristic
+from monsters
+order by id
