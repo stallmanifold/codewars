@@ -6,7 +6,7 @@ from primes primes1
 where num not in (
     select primes1.num
     from primes primes2 
-     primes2.num < primes1.num
+    where primes2.num < primes1.num
       and mod(primes1.num, primes2.num) = 0
 )
 limit 25
