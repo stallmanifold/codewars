@@ -21,10 +21,10 @@ class PyTest(TestCommand):
 
 config = {
     'description': 'Codewars',
-    'author': 'Stallmanifold',
-    'url': 'https://github.com/stallmanifold/codewars',
-    'download_url': 'https://github.com/stallmanifold/codewars.git',
-    'author_email': 'stallmanifold@gmail.com',
+    'author': 'LambdaXymox',
+    'url': 'https://github.com/lambdaxymox/codewars',
+    'download_url': 'https://github.com/lambdaxymox/codewars.git',
+    'author_email': 'lambda.xymox@gmail.com',
     'version': '0.1',
     'install_requires': ['pytest'],
     'package_dir': {'': 'src'},

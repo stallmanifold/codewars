@@ -25,11 +25,11 @@ license:             Apache-2.0
 license-file:        LICENSE
 
 -- The package author(s).
-author:              Stallmanifold
+author:              LambdaXymox
 
 -- An email address to which users can send suggestions, bug reports, and 
 -- patches.
-maintainer:          stallmanifold@gmail.com
+maintainer:          lambda.xymox@gmail.com
 
 -- A copyright notice.
 -- copyright:           
